@@ -1,0 +1,29 @@
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">LM</div>
+      <div>
+        <strong>LastMile Optimizer</strong>
+        <span>Alejandro Ospina</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/deliveries" routerLinkActive="active">Entregas</a>
+      <a routerLink="/optimizer" routerLinkActive="active">Optimizar Ruta</a>
+      <a routerLink="/routes" routerLinkActive="active">Rutas</a>
+    </nav>
+
+    <div class="user-panel" *ngIf="user$ | async as user">
+      <span>Sesion activa</span>
+      <strong>{{ user.fullName }}</strong>
+      <small>{{ user.email }} · {{ user.role }}</small>
+      <button type="button" class="ghost full" (click)="logout()">Cerrar sesion</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

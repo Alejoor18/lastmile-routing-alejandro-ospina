@@ -1,0 +1,102 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Operacion</p>
+    <h1>Entregas</h1>
+  </div>
+  <button type="button" class="ghost" (click)="load()">Recargar</button>
+</section>
+
+<div class="toolbar">
+  <label>
+    Estado
+    <select [(ngModel)]="statusFilter" (change)="load()">
+      <option value="">Todos</option>
+      <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+    </select>
+  </label>
+  <label>
+    Prioridad
+    <select [(ngModel)]="priorityFilter" (change)="load()">
+      <option value="">Todas</option>
+      <option *ngFor="let priority of priorities" [value]="priority">{{ priority }}</option>
+    </select>
+  </label>
+</div>
+
+<div class="alert success" *ngIf="message">{{ message }}</div>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<section class="work-grid">
+  <form class="panel form" [formGroup]="form" (ngSubmit)="submit()">
+    <h2>{{ editingId ? 'Editar entrega' : 'Crear entrega' }}</h2>
+    <label>Destinatario <input type="text" formControlName="recipientName" /></label>
+    <label>Direccion <input type="text" formControlName="address" /></label>
+    <div class="two-col">
+      <label>Latitud <input type="number" step="0.0001" formControlName="latitude" /></label>
+      <label>Longitud <input type="number" step="0.0001" formControlName="longitude" /></label>
+    </div>
+    <label>Peso kg <input type="number" step="0.1" min="0.1" formControlName="packageWeightKg" /></label>
+    <div class="two-col">
+      <label>
+        Prioridad
+        <select formControlName="priority">
+          <option *ngFor="let priority of priorities" [value]="priority">{{ priority }}</option>
+        </select>
+      </label>
+      <label>
+        Estado
+        <select formControlName="status">
+          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+        </select>
+      </label>
+    </div>
+    <label>Notas <textarea rows="3" formControlName="notes"></textarea></label>
+
+    <div class="button-row">
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Guardando...' : 'Guardar' }}</button>
+      <button type="button" class="ghost" (click)="resetForm()">Limpiar</button>
+    </div>
+  </form>
+
+  <section class="panel table-panel">
+    <div class="table-header">
+      <h2>Listado real</h2>
+      <span>{{ deliveries.length }} registros</span>
+    </div>
+
+    <div class="loading" *ngIf="loading">Cargando entregas...</div>
+    <div class="empty-state compact" *ngIf="!loading && deliveries.length === 0">No hay entregas para el filtro.</div>
+
+    <div class="table-scroll" *ngIf="deliveries.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Destinatario</th>
+            <th>Direccion</th>
+            <th>Peso</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let delivery of deliveries">
+            <td>{{ delivery.recipientName }}</td>
+            <td>{{ delivery.address }}</td>
+            <td>{{ delivery.packageWeightKg | number:'1.1-1' }} kg</td>
+            <td><span class="badge priority-{{ delivery.priority.toLowerCase() }}">{{ delivery.priority }}</span></td>
+            <td>
+              <select [ngModel]="delivery.status" (ngModelChange)="updateStatus(delivery, $event)">
+                <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+              </select>
+            </td>
+            <td class="row-actions">
+              <button type="button" class="ghost small" (click)="edit(delivery)">Editar</button>
+              <button type="button" class="danger small" (click)="remove(delivery)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

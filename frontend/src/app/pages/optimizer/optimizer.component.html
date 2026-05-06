@@ -1,0 +1,124 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Planeacion</p>
+    <h1>Optimizar Ruta</h1>
+  </div>
+  <button type="button" class="ghost" (click)="load()">Recargar</button>
+</section>
+
+<div class="alert success" *ngIf="message">{{ message }}</div>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+<div class="loading" *ngIf="loading">Cargando conductores y entregas pendientes...</div>
+
+<section class="work-grid">
+  <form class="panel form" [formGroup]="form" (ngSubmit)="optimize()">
+    <h2>Parametros</h2>
+    <label>
+      Conductor activo
+      <select formControlName="driverId">
+        <option [value]="0">Seleccionar</option>
+        <option *ngFor="let driver of drivers" [value]="driver.id">
+          {{ driver.name }} · {{ driver.vehiclePlate }}
+        </option>
+      </select>
+    </label>
+    <div class="two-col">
+      <label>Lat deposito <input type="number" step="0.0001" formControlName="warehouseLat" /></label>
+      <label>Lng deposito <input type="number" step="0.0001" formControlName="warehouseLng" /></label>
+    </div>
+
+    <div class="delivery-picker">
+      <div class="table-header">
+        <h2>Entregas PENDING</h2>
+        <span>{{ selectedIds.size }} seleccionadas</span>
+      </div>
+      <label class="check-row" *ngFor="let delivery of pendingDeliveries">
+        <input
+          type="checkbox"
+          [checked]="selectedIds.has(delivery.id)"
+          (change)="toggleDelivery(delivery.id, $event)"
+        />
+        <span>
+          <strong>{{ delivery.recipientName }}</strong>
+          <small>{{ delivery.address }}</small>
+        </span>
+        <span class="badge {{ priorityClass(delivery.priority) }}">{{ delivery.priority }}</span>
+      </label>
+      <div class="empty-state compact" *ngIf="!loading && pendingDeliveries.length === 0">
+        No hay entregas pendientes.
+      </div>
+    </div>
+
+    <button type="submit" class="primary full" [disabled]="optimizing || drivers.length === 0">
+      {{ optimizing ? 'Optimizando...' : 'Optimizar ruta' }}
+    </button>
+  </form>
+
+  <section class="panel result-panel">
+    <div *ngIf="!result" class="empty-state">
+      <h2>Ruta sin generar</h2>
+    </div>
+
+    <ng-container *ngIf="result">
+      <div class="table-header">
+        <div>
+          <p class="eyebrow">Resultado</p>
+          <h2>{{ result.name }}</h2>
+        </div>
+        <span class="status-pill ok">{{ result.status }}</span>
+      </div>
+
+      <div class="summary-grid">
+        <div><span>Conductor</span><strong>{{ result.driver.name }}</strong></div>
+        <div><span>Distancia</span><strong>{{ result.totalDistanceKm | number:'1.1-2' }} km</strong></div>
+        <div><span>Duracion</span><strong>{{ result.estimatedDurationMinutes }} min</strong></div>
+        <div><span>Paradas</span><strong>{{ result.stops.length }}</strong></div>
+      </div>
+
+      <svg class="route-map" viewBox="0 0 600 380" role="img" aria-label="Visualizacion de ruta optimizada">
+        <rect x="1" y="1" width="598" height="378" rx="8" />
+        <line
+          *ngFor="let segment of segments()"
+          [attr.x1]="segment.x1"
+          [attr.y1]="segment.y1"
+          [attr.x2]="segment.x2"
+          [attr.y2]="segment.y2"
+        />
+        <g *ngFor="let point of points(); let first = first">
+          <circle [attr.cx]="point.x" [attr.cy]="point.y" r="10" [attr.class]="first ? 'warehouse' : priorityClass(point.priority!)" />
+          <text [attr.x]="point.x" [attr.y]="point.y + 4">{{ point.label }}</text>
+        </g>
+      </svg>
+
+      <div class="legend">
+        <span><i class="warehouse-dot"></i>Deposito</span>
+        <span><i class="high-dot"></i>Alta prioridad</span>
+        <span><i class="medium-dot"></i>Media prioridad</span>
+        <span><i class="low-dot"></i>Baja prioridad</span>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Direccion</th>
+              <th>Prioridad</th>
+              <th>Distancia previa</th>
+              <th>ETA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stop of result.stops">
+              <td>{{ stop.stopOrder }}</td>
+              <td>{{ stop.address }}</td>
+              <td><span class="badge {{ priorityClass(stop.priority) }}">{{ stop.priority }}</span></td>
+              <td>{{ stop.distanceFromPreviousKm | number:'1.1-2' }} km</td>
+              <td>{{ stop.estimatedArrival | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </section>
+</section>

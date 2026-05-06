@@ -1,0 +1,83 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Historial</p>
+    <h1>Rutas</h1>
+  </div>
+  <button type="button" class="ghost" (click)="load()">Recargar</button>
+</section>
+
+<div class="alert success" *ngIf="message">{{ message }}</div>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+<div class="loading" *ngIf="loading">Cargando rutas...</div>
+
+<section class="work-grid routes-grid" *ngIf="!loading">
+  <aside class="panel route-list">
+    <div class="table-header">
+      <h2>Rutas generadas</h2>
+      <span>{{ routes.length }}</span>
+    </div>
+    <button
+      type="button"
+      class="route-item"
+      [class.active]="selectedRoute?.id === route.id"
+      *ngFor="let route of routes"
+      (click)="select(route)"
+    >
+      <strong>{{ route.name }}</strong>
+      <span>{{ route.driver.name }} · {{ route.totalDistanceKm | number:'1.1-2' }} km</span>
+      <small>{{ route.status }} · {{ route.createdAt | date:'short' }}</small>
+    </button>
+    <div class="empty-state compact" *ngIf="routes.length === 0">No hay rutas guardadas.</div>
+  </aside>
+
+  <section class="panel result-panel" *ngIf="selectedRoute">
+    <div class="table-header">
+      <div>
+        <p class="eyebrow">Detalle</p>
+        <h2>{{ selectedRoute.name }}</h2>
+      </div>
+      <button type="button" class="danger small" (click)="remove(selectedRoute)">Eliminar</button>
+    </div>
+
+    <div class="summary-grid">
+      <div><span>Conductor</span><strong>{{ selectedRoute.driver.name }}</strong></div>
+      <div><span>Distancia</span><strong>{{ selectedRoute.totalDistanceKm | number:'1.1-2' }} km</strong></div>
+      <div><span>Duracion</span><strong>{{ selectedRoute.estimatedDurationMinutes }} min</strong></div>
+      <div>
+        <span>Estado</span>
+        <select [ngModel]="selectedRoute.status" (ngModelChange)="updateStatus(selectedRoute, $event)">
+          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Destinatario</th>
+            <th>Direccion</th>
+            <th>Prioridad</th>
+            <th>Distancia previa</th>
+            <th>ETA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stop of selectedRoute.stops">
+            <td>{{ stop.stopOrder }}</td>
+            <td>{{ stop.recipientName }}</td>
+            <td>{{ stop.address }}</td>
+            <td><span class="badge {{ priorityClass(stop.priority) }}">{{ stop.priority }}</span></td>
+            <td>{{ stop.distanceFromPreviousKm | number:'1.1-2' }} km</td>
+            <td>{{ stop.estimatedArrival | date:'short' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel empty-state" *ngIf="!selectedRoute && routes.length > 0">
+    <h2>Selecciona una ruta</h2>
+  </section>
+</section>

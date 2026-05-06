@@ -1,0 +1,35 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Operacion</p>
+    <h1>Dashboard</h1>
+  </div>
+  <div class="actions">
+    <span class="status-pill" [class.ok]="backendUp">{{ backendUp ? 'Backend UP' : 'Backend DOWN' }}</span>
+    <button type="button" class="ghost" (click)="load()">Recargar</button>
+    <a routerLink="/optimizer" class="primary">Optimizar ruta</a>
+  </div>
+</section>
+
+<div class="alert error" *ngIf="error">{{ error }}</div>
+<div class="loading" *ngIf="loading">Cargando datos reales del backend...</div>
+
+<section class="kpi-grid" *ngIf="!loading">
+  <article class="metric-card" *ngFor="let kpi of kpis">
+    <span>{{ kpi.label }}</span>
+    <strong>{{ kpi.value }}</strong>
+  </article>
+</section>
+
+<section class="detail-band" *ngIf="lastRoute">
+  <div>
+    <p class="eyebrow">Ultima ruta</p>
+    <h2>{{ lastRoute.name }}</h2>
+    <p>{{ lastRoute.driver.name }} · {{ lastRoute.stops.length }} paradas · {{ lastRoute.estimatedDurationMinutes }} min</p>
+  </div>
+  <strong>{{ lastRoute.totalDistanceKm | number:'1.1-2' }} km</strong>
+</section>
+
+<section class="empty-state" *ngIf="!loading && !lastRoute">
+  <h2>No hay rutas generadas</h2>
+  <a routerLink="/optimizer" class="primary">Crear primera ruta</a>
+</section>
